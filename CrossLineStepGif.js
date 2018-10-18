@@ -1,6 +1,6 @@
-const gifencoder = require('gifencoder')
-const Canvas = require('canvas')
-const factor = 4, w = 500, h = 500
+const GifEncoder = require('gifencoder')
+const Canvas = require('canvas').Canvas
+const factor = 4, w = 500, h = 500, nodes = 5
 class State {
     constructor() {
         this.scale = 0
@@ -10,6 +10,7 @@ class State {
 
     update(cb) {
         this.scale += (0.1/factor) * this.dir
+        console.log(this.scale)
         if (Math.abs(this.scale - this.prevScale) > 1) {
             this.scale = this.prevScale + this.dir
             this.dir = 0
@@ -18,10 +19,9 @@ class State {
         }
     }
 
-    startUpdating(cb) {
+    startUpdating() {
         if (this.dir == 0) {
             this.dir = 1 - 2 * this.prevScale
-            cb()
         }
     }
 }
@@ -30,6 +30,7 @@ class CLSNode {
     constructor(i) {
         this.state = new State()
         this.i = i
+        this.addNeighbor()
     }
 
     addNeighbor() {
@@ -59,6 +60,9 @@ class CLSNode {
             context.restore()
         }
         context.restore()
+        if (this.next) {
+            this.next.draw(context)
+        }
     }
 
     update(cb) {
@@ -69,8 +73,8 @@ class CLSNode {
         this.state.startUpdating(cb)
     }
 
-    getNext(dir: number, cb) {
-        var curr : CLSNode = this.prev
+    getNext(dir, cb) {
+        var curr = this.prev
         if (dir == 1) {
             curr = this.next
         }
@@ -122,6 +126,7 @@ class Renderer {
             cb(context)
             this.cls.update(() => {
                 endcb()
+                this.running = false
             })
         }
     }
@@ -139,7 +144,7 @@ class CrossLineStepGif {
     initEncoder() {
         this.encoder.setRepeat(0)
         this.encoder.setDelay(50)
-        this.encoder.setQuality(100)
+        this.encoder.setQuality(200)
     }
 
     create(fn) {
