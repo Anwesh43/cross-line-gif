@@ -157,3 +157,5 @@ class CrossLineStepGif {
         gif.create(fn)
     }
 }
+
+module.exports = CrossLineStepGif.init
