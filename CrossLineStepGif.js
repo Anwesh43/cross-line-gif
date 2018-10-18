@@ -81,3 +81,29 @@ class CLSNode {
         return this
     }
 }
+
+class CrossLineStep {
+    constructor() {
+        this.root = new CLSNode(0)
+        this.curr = this.root
+        this.dir = 1
+        this.curr.startUpdating()
+    }
+
+    draw(context : CanvasRenderingContext2D) {
+        this.root.draw(context)
+    }
+
+    update(cb : Function) {
+        this.curr.update(() => {
+            this.curr = this.curr.getNext(this.dir, () => {
+                this.dir *= -1
+            })
+            if (this.curr.i == 0 && this.dir == 1) {
+                cb()
+            } else {
+                this.curr.startUpdating()
+            }
+        })
+    }
+}
