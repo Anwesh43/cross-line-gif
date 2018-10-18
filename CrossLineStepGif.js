@@ -1,6 +1,6 @@
 const gifencoder = require('gifencoder')
 const Canvas = require('canvas')
-const factor = 4
+const factor = 4, w = 500, h = 500
 class State {
     constructor() {
         this.scale = 0
@@ -39,17 +39,17 @@ class CLSNode {
         }
     }
 
-    draw(context : CanvasRenderingContext2D) {
-        const gap : number = w / (nodes + 1)
-        const size : number = gap / 3
-        const sk : number = 1 / factor
+    draw(context) {
+        const gap = w / (nodes + 1)
+        const size = gap / 3
+        const sk = 1 / factor
         context.lineWidth = Math.min(w, h) / 60
         context.lineCap = 'round'
         context.strokeStyle = '#673AB7'
         context.save()
         context.translate(gap * this.i + gap, h/2)
         for (var j = 0; j < factor; j++) {
-            const sc : number = Math.min(sk, Math.max(0, this.state.scale - sk * j)) * factor
+            const sc = Math.min(sk, Math.max(0, this.state.scale - sk * j)) * factor
             context.save()
             context.rotate(j * Math.PI/2)
             context.beginPath()
@@ -61,15 +61,15 @@ class CLSNode {
         context.restore()
     }
 
-    update(cb : Function) {
+    update(cb) {
         this.state.update(cb)
     }
 
-    startUpdating(cb : Function) {
+    startUpdating(cb) {
         this.state.startUpdating(cb)
     }
 
-    getNext(dir: number, cb : Function) : CLSNode {
+    getNext(dir: number, cb) {
         var curr : CLSNode = this.prev
         if (dir == 1) {
             curr = this.next
@@ -90,11 +90,11 @@ class CrossLineStep {
         this.curr.startUpdating()
     }
 
-    draw(context : CanvasRenderingContext2D) {
+    draw(context) {
         this.root.draw(context)
     }
 
-    update(cb : Function) {
+    update(cb) {
         this.curr.update(() => {
             this.curr = this.curr.getNext(this.dir, () => {
                 this.dir *= -1
@@ -105,5 +105,24 @@ class CrossLineStep {
                 this.curr.startUpdating()
             }
         })
+    }
+}
+
+class Renderer {
+    constructor() {
+        this.running = true
+        this.cls = new CrossLineStep()
+    }
+
+    render(context, cb, endcb) {
+        while(this.running) {
+            context.fillStyle = '#BDBDBD'
+            context.fillRect(0, 0, w, h)
+            this.cls.draw(context)
+            cb(context)
+            this.cls.update(() => {
+                endcb()
+            })
+        }
     }
 }
