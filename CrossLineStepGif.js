@@ -126,3 +126,34 @@ class Renderer {
         }
     }
 }
+
+class CrossLineStepGif {
+    constructor() {
+        this.canvas = new Canvas(w, h)
+        this.encoder = new GifEncoder(w, h)
+        this.context = this.canvas.getContext('2d')
+        this.renderer = new Renderer()
+        this.initEncoder()
+    }
+
+    initEncoder() {
+        this.encoder.setRepeat(0)
+        this.encoder.setDelay(50)
+        this.encoder.setQuality(100)
+    }
+
+    create(fn) {
+        this.encoder.createReadStream().pipe(require('fs').createWriteStream(fn))
+        this.encoder.start()
+        this.renderer.render(this.context, (ctx) => {
+            this.encoder.addFrame(ctx)
+        }, () => {
+            this.encoder.end()
+        })
+    }
+
+    static init(fn) {
+        const gif = new CrossLineStepGif()
+        gif.create(fn)
+    }
+}
